@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Two-Slot CSV Importer</title>
+    <style>
+        /* Base styles for the slot container */
+        .slot-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .slot-conainer2 {
+            display: flex;
+            flex-direction: column;
+            flex: 1
+        }
+
+        /* Default empty state: Light Grey background */
+        .csv-slot {
+            flex-grow: 1;
+            border: 2px dashed #000;
+            text-align: center;
+            line-height: 200px;
+            background-color: #e0e0e0;
+            /* Light Grey */
+            transition: background-color 0.3s ease;
+            /* Smooth color transition */
+        }
+
+        /* Active state: Sky Blue background when a file is loaded */
+        .csv-slot.has-file {
+            background-color: #87ceeb;
+            /* Sky Blue */
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            background-color: #0071e3;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            text-align: center;
+            padding: 5px;
+        }
+
+        button:hover {
+            background-color: #0077ed;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        :root {
+            --diff-pos-bg: #bbf7d0;
+            --diff-pos-text: #166534;
+            --diff-neg-bg: #fecdd3;
+            --diff-neg-text: #991b1b;
+            --diff-add-text: #ffffff;
+            --diff-add-bg: #22c55e;
+            --diff-del-text: #ffffff;
+            --diff-del-bg: #ef4444;
+            --diff-hover: rgba(0, 0, 0, 0.04);
+        }
+
+        .diff-tree-container {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+            font-size: 14px;
+            user-select: none;
+            /*max-width: 600px;*/
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 8px;
+            background-color: #fff;
+        }
+
+        .diff-tree-container ul {
+            list-style: none;
+            padding-left: 20px;
+            margin: 0;
+        }
+
+        .diff-tree-container ul.diff-root {
+            padding-left: 0;
+        }
+
+        .diff-node {
+            margin: 2px 0;
+            border-radius: 4px;
+        }
+
+        /* Row structural layout */
+        .diff-row {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.15s ease;
+        }
+
+        .diff-row:hover {
+            background-color: var(--diff-hover);
+        }
+
+        /* Interactive Arrows */
+        .diff-arrow {
+            display: inline-block;
+            width: 16px;
+            text-align: center;
+            margin-right: 6px;
+            font-size: 10px;
+            color: #757575;
+        }
+
+        .diff-arrow.has-children {
+            cursor: pointer;
+        }
+
+        /* File/Folder Name */
+        .diff-name {
+            flex-grow: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Allocation Sizing Badge */
+        .diff-allocation {
+            font-weight: 600;
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 12px;
+        }
+
+        /* Dynamic colorings dictated by positive/negative allocations */
+        /*.diff-positive>.diff-row .diff-name {
+            color: var(--diff-pos-text);
+        }
+        
+        .diff-positive>.diff-row .diff-name ,
+        .diff-positive>.diff-row .diff-allocation {
+            background-color: var(--diff-pos-bg);
+            color: var(--diff-pos-text);
+        }
+
+        .diff-negative>.diff-row .diff-name {
+            color: var(--diff-neg-text);
+        }
+
+        .diff-negative>.diff-row .diff-allocation {
+            background-color: var(--diff-neg-bg);
+            color: var(--diff-neg-text);
+        }
+
+        .diff-added>.diff-row .diff-name {
+            color: var(--diff-add-text);
+        }
+
+        .diff-added>.diff-row .diff-allocation {
+            background-color: var(--diff-add-bg);
+            color: var(--diff-add-text);
+        }
+
+        .diff-deleted>.diff-row .diff-name {
+            color: var(--diff-del-text);
+        }
+
+        .diff-deleted>.diff-row .diff-allocation {
+            background-color: var(--diff-del-bg);
+            color: var(--diff-del-text);
+        }*/
+        .diff-positive>.diff-row .diff-name ,
+        .diff-positive>.diff-row .diff-allocation {
+            background-color: var(--diff-pos-bg);
+            color: var(--diff-pos-text);
+        }
+
+        .diff-negative>.diff-row .diff-name ,
+        .diff-negative>.diff-row .diff-allocation {
+            background-color: var(--diff-neg-bg);
+            color: var(--diff-neg-text);
+        }
+
+        .diff-added>.diff-row .diff-name ,
+        .diff-added>.diff-row .diff-allocation {
+            background-color: var(--diff-add-bg);
+            color: var(--diff-add-text);
+        }
+
+        .diff-deleted>.diff-row .diff-name ,
+        .diff-deleted>.diff-row .diff-allocation {
+            background-color: var(--diff-del-bg);
+            color: var(--diff-del-text);
+        }
+
+        ul li{
+            border-left: 2px solid #cbd5e1
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="slot-container">
+        <div class="slot-conainer2">
+            <div id="left-slot" class="csv-slot">
+                Drop Left CSV File Here
+            </div>
+            <div class="container">
+                <button id="leftConvertBtn">Convert CSV to Tree</button>
+            </div>
+        </div>
+        <div class="slot-conainer2">
+            <div id="right-slot" class="csv-slot">
+                Drop Right CSV File Here
+            </div>
+            <div class="container">
+                <button id="rightConvertBtn">Convert CSV to Tree</button>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <button id="diffBtn">Diff Trees</button>
+    </div>
+    <div class="container">
+        <button id="oneBtn">Generate Diff Tree(Unified)</button>
+        <button id="expandBtn" onclick="fullExpand()" style="background-color: #00c500">Expand Tree</button>
+        <button id="collapseBtn" onclick="fullCollapse()" style="background-color: #df0000">Collapse Tree</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
